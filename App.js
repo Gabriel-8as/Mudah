@@ -2,17 +2,37 @@ import React from 'react';
 import {createStackNavigator, createSwitchNavigator, createAppContainer} from 'react-navigation';
 
 import {
-    Teste
+    Main,
+    Login,
+    CriarConta,
+    CadastroMudanca,
+    CadastroTransportadora,
+    MinhasMudancas
 } from "./application/pages";
 
 export default createAppContainer(
     createSwitchNavigator({
-            'Teste': {
-                screen: Teste,
+            'Main': {
+                screen: Main,
+            },
+            'Login': {
+                screen: Login,
+            },
+            'CriarConta': {
+                screen: CriarConta,
+            },
+            'CadastroMudanca': {
+                screen: CadastroMudanca,
+            },
+            'CadastroTransportadora': {
+                screen: CadastroTransportadora,
+            },
+            'MinhasMudancas': {
+                screen: MinhasMudancas,
             },
         },
         {
-            initialRouteName: 'Teste',
+            initialRouteName: 'Main',
             navigationOptions:
                 {
                     header: null
