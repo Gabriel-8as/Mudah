@@ -7,11 +7,13 @@ import {
     CriarConta,
     CadastroMudanca,
     CadastroTransportadora,
-    MinhasMudancas
+    MinhasMudancas,
+    Orcamentos,
+    Mapa
 } from "./application/pages";
 
 export default createAppContainer(
-    createSwitchNavigator({
+    createStackNavigator({
             'Main': {
                 screen: Main,
             },
@@ -30,10 +32,16 @@ export default createAppContainer(
             'MinhasMudancas': {
                 screen: MinhasMudancas,
             },
+            'Orcamentos': {
+                screen: Orcamentos,
+            },
+            'Mapa': {
+                screen: Mapa,
+            },
         },
         {
             initialRouteName: 'Main',
-            navigationOptions:
+            defaultNavigationOptions:
                 {
                     header: null
                 }

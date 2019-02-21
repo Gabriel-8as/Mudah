@@ -50,6 +50,10 @@ export default class CadastroTransportadora extends React.Component {
        });
     });
 
+    finalizar = (() => {
+        this.props.navigation.navigate('Mapa')
+    });
+
     render_top() {
         return (
             <View style={[criar_conta_styles.container_top, {marginTop: 0, marginBottom: 10}]}>

@@ -32,8 +32,28 @@ const stylesMinhasMudancas = StyleSheet.create({
     touch_tabs: {
         flex: 1,
         padding: 5,
+        paddingBottom: 8,
+        paddingTop: 8,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+
+    container_footer: {
+        width: '100%',
+        height: 50,
+        flexDirection: 'row',
+        position: 'relative',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderTopColor: '#dadada',
+        borderTopWidth: 1,
+        bottom: 0
+    },
+
+    touch_footer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
     },
 
 

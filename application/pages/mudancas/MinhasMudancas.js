@@ -7,11 +7,13 @@ import {
     NativeModules,
     TextInput,
     Image,
-    TouchableOpacity
+    TouchableOpacity,
+    ActivityIndicator
 } from 'react-native';
 import global_styles from '../../global-styles/Global-styles';
 import minhas_mudancas_styles from './MinhasMudancas-styles';
 import Header from "../../components/header/Header";
+import ListMudancas from "./mudancasComponents/list-mudancas/list-mudancas";
 
 const {StatusBarManager} = NativeModules;
 
@@ -22,11 +24,26 @@ export default class MinhasMudancas extends React.Component {
 
         this.state = {
             statusBarHeight: 0,
+            lista_mudanca: [],
+            loading_list: false
         }
     }
 
     componentWillMount() {
         this.get_status_bar_height();
+    }
+
+    componentDidMount() {
+        this.setState({
+            loading_list: true
+        });
+
+        setTimeout(() => {
+            this.get_lista_mudancas();
+            this.setState({
+                loading_list: false
+            });
+        }, 500);
     }
 
     get_status_bar_height() {
@@ -42,8 +59,76 @@ export default class MinhasMudancas extends React.Component {
         }
     }
 
+    get_lista_mudancas = (() => {
+        this.state.lista_mudanca = [
+            {
+                id: 1,
+                origem: 'Rua Javaés, 335',
+                destino: 'Rua dos Gumões, 277',
+                data: '14/09/2019',
+                status: 'Aguardando orçamentos',
+                qtdOrcamentos: 125,
+
+                orcamentos: [
+                    {
+                        id: 1,
+                        empresa: 'Transportadora do Toninho',
+                        valor: 'R$ 180,00'
+                    },
+                    {
+                        id: 2,
+                        empresa: 'Transportadora do Gabriel',
+                        valor: 'R$ 100,00'
+                    },
+                    {
+                        id: 3,
+                        empresa: 'Luis Carretos',
+                        valor: 'R$ 150,00'
+                    },
+                ]
+            },
+            {
+                id: 2,
+                origem: 'Rua Anhaia, 185',
+                destino: 'Rua Silva Pinto, 355',
+                data: '21/02/2019',
+                status: 'Aguardando orçamentos',
+                qtdOrcamentos: 100,
+
+                orcamentos: [
+                    {
+                        id: 1,
+                        empresa: 'Transportadora do Cleber',
+                        valor: 'R$ 180,00'
+                    },
+                    {
+                        id: 2,
+                        empresa: 'Transportadora do Walter',
+                        valor: 'R$ 100,00'
+                    },
+                    {
+                        id: 3,
+                        empresa: 'Vanger Carretos',
+                        valor: 'R$ 150,00'
+                    },
+                ]
+            },
+        ];
+        this.setState({
+            list_mudancas: this.state.lista_mudanca
+        });
+    });
+
     search_mudancas = ((value) => {
 
+    });
+
+    go_to_orcamentos = ((item_mudanca) => {
+        this.props.navigation.navigate('Orcamentos', {item_mudanca});
+    });
+
+    go_to_create_new_mudanca = (() => {
+        this.props.navigation.navigate('CadastroMudanca');
     });
 
     render_input_search() {
@@ -69,21 +154,32 @@ export default class MinhasMudancas extends React.Component {
 
     render_tabs() {
         return (
-            <View style={[global_styles.container_padrao, {borderTopColor: '#dadada', borderTopWidth: 1, paddingTop: 10}]}>
+            <View style={[global_styles.container_padrao, {
+                borderTopColor: '#dadada',
+                borderTopWidth: 1,
+                paddingTop: 10,
+                marginBottom: 10
+            }]}>
                 <View style={[minhas_mudancas_styles.container_tabs]}>
-                    <TouchableOpacity style={[minhas_mudancas_styles.touch_tabs, {backgroundColor: '#b0bec5', borderRightColor: '#b0bec5', borderRightWidth: 1}]}>
+                    <TouchableOpacity style={[minhas_mudancas_styles.touch_tabs, {
+                        backgroundColor: '#b0bec5',
+                        borderRightColor: '#b0bec5',
+                        borderRightWidth: 1
+                    }]}>
                         <Text style={global_styles.text_white}>
                             Todas
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[minhas_mudancas_styles.touch_tabs, {borderRightColor: '#b0bec5',  borderRightWidth: 1}]}>
+                    <TouchableOpacity
+                        style={[minhas_mudancas_styles.touch_tabs, {borderRightColor: '#b0bec5', borderRightWidth: 1}]}>
                         <Text style={{color: '#b0bec5'}}>
                             Aguardando
                         </Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[minhas_mudancas_styles.touch_tabs, {borderRightColor: '#b0bec5', borderRightWidth: 1}]}>
+                    <TouchableOpacity
+                        style={[minhas_mudancas_styles.touch_tabs, {borderRightColor: '#b0bec5', borderRightWidth: 1}]}>
                         <Text style={{color: '#b0bec5'}}>
                             Finalizados
                         </Text>
@@ -99,10 +195,32 @@ export default class MinhasMudancas extends React.Component {
         )
     }
 
-    render_list_mudancas(){
-        return(
-            <View>
+    render_list_mudancas() {
+        if(this.state.loading_list){
+            return(
+                <ActivityIndicator size="large" color="#cccccc"/>
+            )
+        }else {
+            return (
+                <ListMudancas go_to_orcamentos={this.go_to_orcamentos} lista_mudanca={this.state.lista_mudanca}/>
+            );
+        }
+    }
 
+    render_footer() {
+        return (
+            <View style={minhas_mudancas_styles.container_footer}>
+                <TouchableOpacity style={minhas_mudancas_styles.touch_footer}>
+                    <Text style={global_styles.text_gray}>
+                        Mensagens
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => this.go_to_create_new_mudanca()} style={minhas_mudancas_styles.touch_footer}>
+                    <Text style={global_styles.text_gray}>
+                        Nova Mudança
+                    </Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -117,7 +235,8 @@ export default class MinhasMudancas extends React.Component {
 
                 {this.render_input_search()}
                 {this.render_tabs()}
-
+                {this.render_list_mudancas()}
+                {this.render_footer()}
             </View>
         );
     }
