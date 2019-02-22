@@ -10,12 +10,11 @@ import {
     ImageBackground,
     ScrollView,
     Dimensions,
-    Animated
+    Animated,
+    PixelRatio
 } from 'react-native';
 import MapView from 'react-native-maps';
 import mapa_styles from './Mapa-styles';
-import type {ImageSource} from "react-native/Libraries/Image/ImageSource";
-import orcamentos_styles from "../orcamentos/Orcamentos-styles";
 
 const {StatusBarManager} = NativeModules;
 
@@ -86,7 +85,7 @@ export default class Mapa extends React.Component {
     }
 
     async componentDidMount() {
-        // Pegar a localização do usuário
+        // Pegar a localização atual do usuário
         navigator.geolocation.getCurrentPosition(
             ({coords: {latitude, longitude}}) => {
                 this.setState({
@@ -108,7 +107,7 @@ export default class Mapa extends React.Component {
                 enableHighAccuracy: true,
                 maximumAge: 1000,
             }
-        )
+        );
     }
 
     get_status_bar_height() {
@@ -136,6 +135,51 @@ export default class Mapa extends React.Component {
         // this.state.places[0].mark.showCallout();
     };
 
+    get_pixel_size(pixels){
+        return Platform.select({
+            ios: pixels,
+            android: PixelRatio.getPixelSizeForLayoutSize(pixels),
+        });
+    }
+
+    to_coordenate = ((place) => {
+        if(this.state.details_mudanca){
+            Animated.timing(this.state.animation, {
+                toValue: 0,
+                duration: 400
+            }).start(() => {
+                this.setState({
+                    details_mudanca: false
+                });
+            });
+            this.mapView.animateToCoordinate(this.state.region);
+        }else{
+
+            this.setState({
+                details_mudanca: true
+            });
+
+            Animated.timing(this.state.animation, {
+                toValue: 100,
+                duration: 400
+            }).start();
+
+            let coordinates = {
+                latitude: place.latitude,
+                longitude: place.longitude,
+            };
+
+            this.mapView.fitToCoordinates([coordinates], {
+                edgePadding: {
+                    top: this.get_pixel_size(0),
+                    left: this.get_pixel_size(0),
+                    right: this.get_pixel_size(0),
+                    bottom: this.get_pixel_size(250)
+                }
+            });
+        }
+    });
+
     render_details_mudanca() {
 
         let show_dados = this.state.animation.interpolate({
@@ -146,26 +190,22 @@ export default class Mapa extends React.Component {
         if (this.state.details_mudanca) {
             return (
                 <Animated.View style={[mapa_styles.container_place, {transform: [{translateY: show_dados}]}]}>
-                    <View style={[mapa_styles.place]}>
-                        <TouchableOpacity onPress={() => {
-                            Animated.timing(this.state.animation, {
-                                toValue: 0,
-                                duration: 400
-                            }).start(() => {
-                                this.setState({details_mudanca: false});
-                            });
 
-                        }}
-                                          style={mapa_styles.container_icon}>
-                            <View
-                                style={mapa_styles.touch_icon}>
+                    <TouchableOpacity activeOpacity={1} onPress={() => {
+                        this.to_coordenate(this.state.place)
 
-                                <Image style={mapa_styles.icon_close_details}
-                                       source={{uri: 'https://cdn3.iconfinder.com/data/icons/modifiers-add-on-2/48/v-11-512.png'}}/>
+                    }}
+                                      style={mapa_styles.container_icon}>
+                        <View
+                            style={mapa_styles.touch_icon}>
 
-                            </View>
-                        </TouchableOpacity>
+                            <Image style={mapa_styles.icon_close_details}
+                                   source={{uri: 'https://cdn3.iconfinder.com/data/icons/modifiers-add-on-2/48/v-11-512.png'}}/>
 
+                        </View>
+                    </TouchableOpacity>
+
+                    <ScrollView style={[mapa_styles.place]}>
                         <View style={mapa_styles.details_mudanca}>
                             <Text style={[mapa_styles.text_item, {fontSize: 20, fontWeight: 'bold'}]}>
                                 Origem: {this.state.place.origem}
@@ -235,26 +275,15 @@ export default class Mapa extends React.Component {
                             </View>
 
                             <View style={[mapa_styles.container_icon, {marginTop: 10}]}>
-                                <View style={{
-                                    borderColor: '#5A5A5A',
-                                    borderWidth: 1,
-                                    borderRadius: 3,
-                                    flexDirection: 'row'
-                                }}>
+                                <View style={mapa_styles.buttons_menos_mais}>
                                     <TouchableOpacity onPress={() => this.change_valor_proposta(false)}
-                                        style={{
-                                            width: 50,
-                                            borderRightColor: '#5A5A5A',
-                                            borderRightWidth: 1,
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
+                                        style={[mapa_styles.touch_buttons, {borderRightColor: '#5A5A5A', borderRightWidth: 1}]}>
                                         <Text style={[mapa_styles.text_item, {fontSize: 20}]}>
                                             -
                                         </Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => this.change_valor_proposta(true)}
-                                        style={{width: 50, alignItems: 'center', justifyContent: 'center'}}>
+                                        style={mapa_styles.touch_buttons}>
                                         <Text style={[mapa_styles.text_item, {fontSize: 20}]}>
                                             +
                                         </Text>
@@ -269,21 +298,14 @@ export default class Mapa extends React.Component {
                             </View>
 
                             <View style={[mapa_styles.container_icon, {marginTop: 10}]}>
-                                <TouchableOpacity style={{
-                                    width: '80%',
-                                    padding: 10,
-                                    backgroundColor: '#5A5A5A',
-                                    borderRadius: 3,
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}>
+                                <TouchableOpacity style={mapa_styles.touch_button_proposta}>
                                     <Text style={mapa_styles.text_callout}>
                                         Enviar Proposta
                                     </Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
-                    </View>
+                    </ScrollView>
                 </Animated.View>
             )
         } else {
@@ -330,18 +352,15 @@ export default class Mapa extends React.Component {
                             }}
                         >
 
-                            <Image style={mapa_styles.img_marker}
+                            <Image style={[mapa_styles.img_marker]}
                                    source={{uri: 'https://png.pngtree.com/svg/20170919/place_787081.png'}}/>
 
                             <MapView.Callout onPress={() => {
-                                this.setState({details_mudanca: true, place: place});
-                                Animated.timing(this.state.animation, {
-                                    toValue: 100,
-                                    duration: 400
-                                }).start();
+                                this.setState({place: place});
+                                this.to_coordenate(place);
                             }}
                                              tooltip={true}>
-                                <View style={mapa_styles.container_callout}>
+                                <View style={[mapa_styles.container_callout]}>
 
                                     <Text style={[mapa_styles.text_callout, {fontSize: 20, fontWeight: 'bold'}]}>
                                         {place.name}

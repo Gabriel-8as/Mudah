@@ -24,10 +24,7 @@ const stylesMaps = StyleSheet.create({
     place: {
         height: '100%',
         backgroundColor: '#fff',
-        marginHorizontal: 20,
         padding: 10,
-        borderTopRightRadius: 5,
-        borderTopLeftRadius: 5,
     },
 
     text_item: {
@@ -67,13 +64,14 @@ const stylesMaps = StyleSheet.create({
     container_icon: {
         width: '100%',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        backgroundColor: '#fff'
     },
 
     touch_icon: {
         width: 40,
         height: 40,
-        top: -10,
+        top: 0,
         alignItems: 'center',
         justifyContent: 'center'
     },
@@ -89,7 +87,31 @@ const stylesMaps = StyleSheet.create({
         borderBottomColor: '#dadada',
         borderBottomWidth: 1,
         padding: 10
-    }
+    },
+
+    buttons_menos_mais: {
+        borderColor: '#5A5A5A',
+        borderWidth: 1,
+        borderRadius: 3,
+        flexDirection: 'row'
+    },
+
+    touch_buttons: {
+        width: 50,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+
+    touch_button_proposta: {
+        width: '80%',
+        padding: 10,
+        backgroundColor: '#5A5A5A',
+        borderRadius: 3,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+
+
 
 });
 
