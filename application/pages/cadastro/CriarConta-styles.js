@@ -22,7 +22,7 @@ const stylesCriarConta = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 5,
-        marginBottom: -20
+        // marginBottom: -20
     }
 
 

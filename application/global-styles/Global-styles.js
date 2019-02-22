@@ -37,7 +37,9 @@ const stylesGlobal = StyleSheet.create({
 
     btn_padrao: {
         width: '100%',
-        padding: 15,
+        padding: 10,
+        paddingTop: 15,
+        paddingBottom: 15,
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 5,

@@ -31,7 +31,7 @@ const stylesMinhasMudancas = StyleSheet.create({
 
     touch_tabs: {
         flex: 1,
-        padding: 5,
+        padding: 2,
         paddingBottom: 8,
         paddingTop: 8,
         alignItems: 'center',

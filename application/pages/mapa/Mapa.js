@@ -136,43 +136,6 @@ export default class Mapa extends React.Component {
         // this.state.places[0].mark.showCallout();
     };
 
-    // render_footer_map() {
-    //     return (
-    //         <ScrollView style={mapa_styles.container_places}
-    //                     horizontal={true}
-    //                     showsHorizontalScrollIndicator={false}
-    //                     pagingEnabled
-    //                     onMomentumScrollEnd={e => {
-    //                         const scrolled = e.nativeEvent.contentOffset.x;
-    //                         const place = (scrolled > 0) ?
-    //                             scrolled / this.state.screen_width : 0;
-    //
-    //                         const {latitude, longitude, mark} = this.state.places[place];
-    //
-    //                         this.mapView.animateToCoordinate({
-    //                             latitude: latitude,
-    //                             longitude: longitude,
-    //                         }, 1000);
-    //
-    //                         setTimeout(() => {
-    //                             mark.showCallout();
-    //                         }, 1000);
-    //                     }}>
-    //
-    //             {this.state.places.map((place, index) => (
-    //                 <View key={index} style={[mapa_styles.places, {width: this.state.screen_width - 40}]}>
-    //                     <Text style={[mapa_styles.text_item, {fontSize: 20, fontWeight: 'bold'}]}>
-    //                         {place.name}
-    //                     </Text>
-    //                     <Text style={[mapa_styles.text_item, {fontSize: 16}]}>
-    //                         {place.description}
-    //                     </Text>
-    //                 </View>
-    //             ))}
-    //         </ScrollView>
-    //     )
-    // }
-
     render_details_mudanca() {
 
         let show_dados = this.state.animation.interpolate({

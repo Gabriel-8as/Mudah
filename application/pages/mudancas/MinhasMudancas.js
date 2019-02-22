@@ -209,7 +209,7 @@ export default class MinhasMudancas extends React.Component {
 
     render_footer() {
         return (
-            <View style={minhas_mudancas_styles.container_footer}>
+            <View style={[minhas_mudancas_styles.container_footer, Platform.OS === 'ios' ? {bottom: 20} : null]}>
                 <TouchableOpacity style={minhas_mudancas_styles.touch_footer}>
                     <Text style={global_styles.text_gray}>
                         Mensagens

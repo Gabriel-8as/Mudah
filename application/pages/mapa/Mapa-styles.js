@@ -18,7 +18,7 @@ const stylesMaps = StyleSheet.create({
 
     container_place: {
         width: '100%',
-        height: '70%',
+        maxHeight: '75%',
     },
 
     place: {
