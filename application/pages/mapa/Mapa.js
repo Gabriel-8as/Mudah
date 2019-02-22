@@ -6,8 +6,6 @@ import {
     TouchableOpacity,
     Platform,
     NativeModules,
-    TextInput,
-    ImageBackground,
     ScrollView,
     Dimensions,
     Animated,
@@ -15,6 +13,7 @@ import {
 } from 'react-native';
 import MapView from 'react-native-maps';
 import mapa_styles from './Mapa-styles';
+import Directions from './mapaComponents/directions/Directions';
 
 const {StatusBarManager} = NativeModules;
 
@@ -30,21 +29,35 @@ export default class Mapa extends React.Component {
             screen_width: width,
             screen_height: height,
             region: null,
+            destination: null,
             details_mudanca: false,
             place: null,
             height_details: 0,
             animation: new Animated.Value(0),
             valor_proposta: 0,
+            rota_ativa: false,
+            duration: null,
+            km: null,
+            result_directions: null,
 
             places: [
                 {
                     id: 1,
                     name: 'Gabriel',
                     description: 'Preciso fazer uma mudança de Curitiba para São Paulo!',
-                    latitude: -23.531942,
-                    longitude: -46.645147,
-                    origem: 'Rua Javaés, 335',
-                    destino: 'Rua dos Gumões, 277',
+
+                    origem:
+                        {
+                            endereco: 'Rua Javaés, 335',
+                            latitude: -23.531942,
+                            longitude: -46.645147,
+                        },
+                    destino:
+                        {
+                            endereco: 'Avenida Presidente Affonso Camargo, 330 - Curitiba',
+                            latitude: -25.4367565,
+                            longitude: -49.259504
+                        },
                     data: '14/09/2019',
                     status: 'Aguardando orçamentos',
                     qtdOrcamentos: 125,
@@ -54,10 +67,18 @@ export default class Mapa extends React.Component {
                     id: 2,
                     name: 'Roberto',
                     description: 'Carregar 6 gaveteiros do Bom Retiro até o Itaim Bibi.',
-                    latitude: -23.530289,
-                    longitude: -46.636156,
-                    origem: 'Rua Anhaia, 185',
-                    destino: 'Rua Silva Pinto, 355',
+
+                    origem: {
+                        endereco: 'Rua Anhaia, 185',
+                        latitude: -23.530289,
+                        longitude: -46.636156,
+                    },
+                    destino:
+                        {
+                            endereco: 'Rua Silva Pinto, 355',
+                            latitude: -23.4886262,
+                            longitude: -46.7336627
+                        },
                     data: '21/02/2019',
                     status: 'Aguardando orçamentos',
                     qtdOrcamentos: 100,
@@ -67,10 +88,19 @@ export default class Mapa extends React.Component {
                     id: 3,
                     name: 'Katia',
                     description: 'Transportar uma geladeira do Brás até Vila Mariana.',
-                    latitude: -23.533584,
-                    longitude: -46.640780,
-                    origem: 'Rua teste, 335',
-                    destino: 'Rua dos testessss, 277',
+
+                    origem:
+                        {
+                            endereco: 'Rua teste, 335',
+                            latitude: -23.533584,
+                            longitude: -46.640780,
+                        },
+                    destino:
+                        {
+                            endereco: 'Rua dos testessss, 277',
+                            latitude: -23.4886262,
+                            longitude: -46.7336627
+                        },
                     data: '14/09/2019',
                     status: 'Aguardando orçamentos',
                     qtdOrcamentos: 125,
@@ -96,8 +126,6 @@ export default class Mapa extends React.Component {
                         longitudeDelta: 0.0231,
                     }
                 });
-
-                console.log('region: ', this.state.region);
             },
             (e) => {
                 console.log('Error: ', e);
@@ -135,28 +163,35 @@ export default class Mapa extends React.Component {
         // this.state.places[0].mark.showCallout();
     };
 
-    get_pixel_size(pixels){
+    get_pixel_size(pixels) {
         return Platform.select({
             ios: pixels,
             android: PixelRatio.getPixelSizeForLayoutSize(pixels),
         });
     }
 
-    to_coordenate = ((place) => {
-        if(this.state.details_mudanca){
+    show_details = ((place) => {
+        if (this.state.details_mudanca) {
             Animated.timing(this.state.animation, {
                 toValue: 0,
                 duration: 400
             }).start(() => {
                 this.setState({
-                    details_mudanca: false
+                    details_mudanca: false,
+                    destination: null
                 });
             });
             this.mapView.animateToCoordinate(this.state.region);
-        }else{
+        } else {
+
+            this.state.destination = {
+                latitude: place.destino.latitude,
+                longitude: place.destino.longitude
+            };
 
             this.setState({
-                details_mudanca: true
+                details_mudanca: true,
+                destination: this.state.destination
             });
 
             Animated.timing(this.state.animation, {
@@ -165,8 +200,8 @@ export default class Mapa extends React.Component {
             }).start();
 
             let coordinates = {
-                latitude: place.latitude,
-                longitude: place.longitude,
+                latitude: place.origem.latitude,
+                longitude: place.origem.longitude,
             };
 
             this.mapView.fitToCoordinates([coordinates], {
@@ -183,8 +218,8 @@ export default class Mapa extends React.Component {
     render_details_mudanca() {
 
         let show_dados = this.state.animation.interpolate({
-            inputRange: [ 0, 100 ],
-            outputRange: [ 400, 0 ]
+            inputRange: [0, 100],
+            outputRange: [400, 0]
         });
 
         if (this.state.details_mudanca) {
@@ -192,7 +227,7 @@ export default class Mapa extends React.Component {
                 <Animated.View style={[mapa_styles.container_place, {transform: [{translateY: show_dados}]}]}>
 
                     <TouchableOpacity activeOpacity={1} onPress={() => {
-                        this.to_coordenate(this.state.place)
+                        this.show_details(this.state.place)
 
                     }}
                                       style={mapa_styles.container_icon}>
@@ -208,11 +243,19 @@ export default class Mapa extends React.Component {
                     <ScrollView style={[mapa_styles.place]}>
                         <View style={mapa_styles.details_mudanca}>
                             <Text style={[mapa_styles.text_item, {fontSize: 20, fontWeight: 'bold'}]}>
-                                Origem: {this.state.place.origem}
+                                Origem: {this.state.place.origem.endereco}
                             </Text>
 
                             <Text style={[mapa_styles.text_item, {fontSize: 20, fontWeight: 'bold'}]}>
-                                Destino: {this.state.place.destino}
+                                Destino: {this.state.place.destino.endereco}
+                            </Text>
+
+                            <Text style={[mapa_styles.text_item, {fontSize: 16}]}>
+                                Duração: {this.state.duration} min
+                            </Text>
+
+                            <Text style={[mapa_styles.text_item, {fontSize: 16}]}>
+                                KM: {this.state.km}
                             </Text>
 
                             <Text style={[mapa_styles.text_item, {fontSize: 16}]}>
@@ -256,20 +299,20 @@ export default class Mapa extends React.Component {
                                 </Text>
 
                                 {/*<Text style={[mapa_styles.text_item, {fontSize: 34, fontWeight: 'bold'}]}>*/}
-                                    {/*R$*/}
+                                {/*R$*/}
                                 {/*</Text>*/}
 
                                 {/*<TextInput*/}
-                                    {/*style={{backgroundColor: '#fff', textAlign: 'center', color: '#5A5A5A', fontSize: 34, fontWeight: 'bold'}}*/}
-                                    {/*keyboardType='numeric'*/}
-                                    {/*underlineColorAndroid="transparent"*/}
-                                    {/*value={this.state.valor_proposta != null || this.state.valor_proposta != undefined ? this.state.valor_proposta.toString() : this.state.valor_proposta}*/}
-                                    {/*onChangeText={(text) => {*/}
-                                        {/*this.state.valor_proposta = text;*/}
-                                        {/*this.setState({*/}
-                                            {/*valor_proposta: this.state.valor_proposta*/}
-                                        {/*});*/}
-                                    {/*}}*/}
+                                {/*style={{backgroundColor: '#fff', textAlign: 'center', color: '#5A5A5A', fontSize: 34, fontWeight: 'bold'}}*/}
+                                {/*keyboardType='numeric'*/}
+                                {/*underlineColorAndroid="transparent"*/}
+                                {/*value={this.state.valor_proposta != null || this.state.valor_proposta != undefined ? this.state.valor_proposta.toString() : this.state.valor_proposta}*/}
+                                {/*onChangeText={(text) => {*/}
+                                {/*this.state.valor_proposta = text;*/}
+                                {/*this.setState({*/}
+                                {/*valor_proposta: this.state.valor_proposta*/}
+                                {/*});*/}
+                                {/*}}*/}
                                 {/*/>*/}
 
                             </View>
@@ -277,13 +320,16 @@ export default class Mapa extends React.Component {
                             <View style={[mapa_styles.container_icon, {marginTop: 10}]}>
                                 <View style={mapa_styles.buttons_menos_mais}>
                                     <TouchableOpacity onPress={() => this.change_valor_proposta(false)}
-                                        style={[mapa_styles.touch_buttons, {borderRightColor: '#5A5A5A', borderRightWidth: 1}]}>
+                                                      style={[mapa_styles.touch_buttons, {
+                                                          borderRightColor: '#5A5A5A',
+                                                          borderRightWidth: 1
+                                                      }]}>
                                         <Text style={[mapa_styles.text_item, {fontSize: 20}]}>
                                             -
                                         </Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => this.change_valor_proposta(true)}
-                                        style={mapa_styles.touch_buttons}>
+                                                      style={mapa_styles.touch_buttons}>
                                         <Text style={[mapa_styles.text_item, {fontSize: 20}]}>
                                             +
                                         </Text>
@@ -304,6 +350,26 @@ export default class Mapa extends React.Component {
                                     </Text>
                                 </TouchableOpacity>
                             </View>
+
+                            <View style={[mapa_styles.container_icon, {marginTop: 10}]}>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        this.setState({rota_ativa: true, details_mudanca: false});
+                                        this.mapView.fitToCoordinates(this.state.result_directions.coordinates, {
+                                            edgePadding: {
+                                                top: this.get_pixel_size(50),
+                                                left: this.get_pixel_size(50),
+                                                right: this.get_pixel_size(50),
+                                                bottom: this.get_pixel_size(50)
+                                            }
+                                        });
+                                    }}
+                                    style={mapa_styles.touch_button_proposta}>
+                                    <Text style={mapa_styles.text_callout}>
+                                        Ver rota
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </ScrollView>
                 </Animated.View>
@@ -313,7 +379,7 @@ export default class Mapa extends React.Component {
         }
     }
 
-    change_valor_proposta(add){
+    change_valor_proposta(add) {
         if (add) {
             this.state.valor_proposta++;
             this.setState({
@@ -339,6 +405,23 @@ export default class Mapa extends React.Component {
                     onMapReady={this._mapReady}
                 >
 
+                    {this.state.destination && (
+                        <Directions
+                            origin={this.state.place.origem}
+                            destination={this.state.destination}
+                            onReady={result => {
+                                this.state.result_directions = result;
+                                this.state.duration = Math.floor(result.duration);
+                                this.state.km = result.distance;
+                                this.setState({
+                                    duration: this.state.duration,
+                                    km: this.state.km,
+                                    result_directions: this.state.result_directions
+                                });
+                            }}
+                        />
+                    )}
+
                     {this.state.places.map((place, index) => (
 
                         <MapView.Marker
@@ -347,8 +430,8 @@ export default class Mapa extends React.Component {
                             // description={place.description}
                             key={index}
                             coordinate={{
-                                latitude: place.latitude,
-                                longitude: place.longitude,
+                                latitude: place.origem.latitude,
+                                longitude: place.origem.longitude,
                             }}
                         >
 
@@ -357,7 +440,7 @@ export default class Mapa extends React.Component {
 
                             <MapView.Callout onPress={() => {
                                 this.setState({place: place});
-                                this.to_coordenate(place);
+                                this.show_details(place);
                             }}
                                              tooltip={true}>
                                 <View style={[mapa_styles.container_callout]}>
