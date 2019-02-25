@@ -40,7 +40,7 @@ export default createAppContainer(
             },
         },
         {
-            initialRouteName: 'Main',
+            initialRouteName: 'Mapa',
             defaultNavigationOptions:
                 {
                     header: null
