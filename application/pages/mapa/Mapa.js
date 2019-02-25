@@ -262,6 +262,20 @@ export default class Mapa extends React.Component {
         });
     };
 
+    blur() {
+        if (this.state.valor_proposta == 0 || this.state.valor_proposta == '0' || this.state.valor_proposta == 'NaN') {
+            this.state.valor_proposta = 0
+        }
+        this.setState({valor_proposta: this.state.valor_proposta});
+    }
+
+    focus() {
+        if (this.state.valor_proposta == 0 || this.state.valor_proposta == '0') {
+            this.state.valor_proposta = ''
+        }
+        this.setState({valor_proposta: this.state.valor_proposta});
+    }
+
     render_details_mudanca() {
         let show_dados = this.state.animation.interpolate({
             inputRange: [0, 100],
@@ -353,10 +367,12 @@ export default class Mapa extends React.Component {
                                     }}
                                     keyboardType='numeric'
                                     underlineColorAndroid="transparent"
-                                    value={GlobalService.numberToMoney(this.state.valor_proposta.toString())}
-                                    defaultValue={this.state.valor_proposta === 0 || this.state.valor_proposta === '' ? '0,00' : GlobalService.numberToMoney(this.state.valor_proposta.toString())}
+                                    onFocus={() => this.focus()}
+                                    onBlur={() => this.blur()}
+                                    value={this.state.valor_proposta.toString()}
+                                    defaultValue={this.state.valor_proposta === 0 || this.state.valor_proposta === '' ? '0' : this.state.valor_proposta.toString()}
                                     onChangeText={(text) => {
-                                        this.state.valor_proposta = GlobalService.numberToMoney(text);
+                                        this.state.valor_proposta = text;
                                         this.setState({
                                             valor_proposta: this.state.valor_proposta
                                         });
@@ -478,6 +494,7 @@ export default class Mapa extends React.Component {
                                 latitude: place.origem.latitude,
                                 longitude: place.origem.longitude,
                             }}
+                            onPress={() => place.mark.showCallout()}
                         >
                             <Image style={[mapa_styles.img_marker]}
                                    source={{uri: 'https://png.pngtree.com/svg/20170919/place_787081.png'}}/>
