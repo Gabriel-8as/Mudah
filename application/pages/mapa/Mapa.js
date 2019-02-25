@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import {
     View,
     Text,
@@ -15,6 +15,7 @@ import {
 import MapView from 'react-native-maps';
 import mapa_styles from './Mapa-styles';
 import Directions from './mapaComponents/directions/Directions';
+import GlobalService from "../../services/global/global-service";
 
 const {StatusBarManager} = NativeModules;
 
@@ -182,6 +183,7 @@ export default class Mapa extends React.Component {
                     destination: null
                 });
             });
+            place.mark.hideCallout();
             this.mapView.animateToCoordinate(this.state.region);
         } else {
 
@@ -200,17 +202,23 @@ export default class Mapa extends React.Component {
                 duration: 400
             }).start();
 
-            let coordinates = {
-                latitude: place.origem.latitude,
-                longitude: place.origem.longitude,
-            };
+            let coordinates = [
+                {
+                    latitude: place.origem.latitude,
+                    longitude: place.origem.longitude,
+                },
+                {
+                    latitude: place.destino.latitude,
+                    longitude: place.destino.longitude
+                }
+            ];
 
-            this.mapView.fitToCoordinates([coordinates], {
+            this.mapView.fitToCoordinates(coordinates, {
                 edgePadding: {
-                    top: this.get_pixel_size(0),
-                    left: this.get_pixel_size(0),
-                    right: this.get_pixel_size(0),
-                    bottom: this.get_pixel_size(250)
+                    top: this.get_pixel_size(50),
+                    left: this.get_pixel_size(50),
+                    right: this.get_pixel_size(50),
+                    bottom: this.get_pixel_size(500)
                 }
             });
         }
@@ -230,8 +238,31 @@ export default class Mapa extends React.Component {
         }
     }
 
-    render_details_mudanca() {
+    // Mostra a rota para entrega
+    show_rota = () => {
+        this.setState({rota_ativa: true, details_mudanca: false});
+        this.mapView.fitToCoordinates(this.state.result_directions.coordinates, {
+            edgePadding: {
+                top: this.get_pixel_size(20),
+                left: this.get_pixel_size(20),
+                right: this.get_pixel_size(20),
+                bottom: this.get_pixel_size(20)
+            }
+        });
+    };
 
+    get_result_directions = (result) => {
+        this.state.result_directions = result;
+        this.state.duration = Math.floor(result.duration);
+        this.state.km = result.distance;
+        this.setState({
+            duration: this.state.duration,
+            km: this.state.km,
+            result_directions: this.state.result_directions
+        });
+    };
+
+    render_details_mudanca() {
         let show_dados = this.state.animation.interpolate({
             inputRange: [0, 100],
             outputRange: [400, 0]
@@ -240,18 +271,11 @@ export default class Mapa extends React.Component {
         if (this.state.details_mudanca) {
             return (
                 <Animated.View style={[mapa_styles.container_place, {transform: [{translateY: show_dados}]}]}>
-
-                    <TouchableOpacity activeOpacity={1} onPress={() => {
-                        this.show_details(this.state.place)
-
-                    }}
+                    <TouchableOpacity activeOpacity={1} onPress={() => this.show_details(this.state.place)}
                                       style={mapa_styles.container_icon}>
-                        <View
-                            style={mapa_styles.touch_icon}>
-
+                        <View style={mapa_styles.touch_icon}>
                             <Image style={mapa_styles.icon_close_details}
                                    source={{uri: 'https://cdn3.iconfinder.com/data/icons/modifiers-add-on-2/48/v-11-512.png'}}/>
-
                         </View>
                     </TouchableOpacity>
 
@@ -315,18 +339,29 @@ export default class Mapa extends React.Component {
                                 </Text>
 
                                 <TextInput
-                                    style={{backgroundColor: '#fff', borderColor: '#f2f2f2', borderWidth: 1, textAlign: 'center', color: '#5A5A5A', fontSize: 34, fontWeight: 'bold', paddingLeft: 5, paddingRight: 5, marginLeft: 5}}
+                                    style={{
+                                        backgroundColor: '#fff',
+                                        borderColor: '#f2f2f2',
+                                        borderWidth: 1,
+                                        textAlign: 'center',
+                                        color: '#5A5A5A',
+                                        fontSize: 34,
+                                        fontWeight: 'bold',
+                                        paddingLeft: 5,
+                                        paddingRight: 5,
+                                        marginLeft: 5
+                                    }}
                                     keyboardType='numeric'
                                     underlineColorAndroid="transparent"
-                                    value={this.state.valor_proposta != null || this.state.valor_proposta != undefined ? this.state.valor_proposta.toString() : this.state.valor_proposta}
+                                    value={GlobalService.numberToMoney(this.state.valor_proposta.toString())}
+                                    defaultValue={this.state.valor_proposta === 0 || this.state.valor_proposta === '' ? '0,00' : GlobalService.numberToMoney(this.state.valor_proposta.toString())}
                                     onChangeText={(text) => {
-                                        this.state.valor_proposta = text;
+                                        this.state.valor_proposta = GlobalService.numberToMoney(text);
                                         this.setState({
                                             valor_proposta: this.state.valor_proposta
                                         });
                                     }}
                                 />
-
                             </View>
 
                             <View style={[mapa_styles.container_icon, {marginTop: 10}]}>
@@ -366,15 +401,7 @@ export default class Mapa extends React.Component {
                             <View style={[mapa_styles.container_icon, {marginTop: 10}]}>
                                 <TouchableOpacity
                                     onPress={() => {
-                                        this.setState({rota_ativa: true, details_mudanca: false});
-                                        this.mapView.fitToCoordinates(this.state.result_directions.coordinates, {
-                                            edgePadding: {
-                                                top: this.get_pixel_size(50),
-                                                left: this.get_pixel_size(50),
-                                                right: this.get_pixel_size(50),
-                                                bottom: this.get_pixel_size(50)
-                                            }
-                                        });
+                                        this.show_rota();
                                     }}
                                     style={mapa_styles.touch_button_proposta}>
                                     <Text style={mapa_styles.text_callout}>
@@ -391,15 +418,16 @@ export default class Mapa extends React.Component {
         }
     }
 
-    render_buttons(){
-        return(
+    render_buttons() {
+        return (
             <View style={{top: 10, left: 10, position: 'absolute', zIndex: 99}}>
                 {this.state.rota_ativa ?
-                    <TouchableOpacity onPress={() => {
+                    <TouchableOpacity
+                        style={{padding: 10}}
+                        onPress={() => {
                         this.show_details(this.state.place);
                         this.setState({rota_ativa: false});
-                    }}
-                                      style={{padding: 10}}>
+                    }}>
                         <Image style={[{width: 30, height: 30, tintColor: '#000'}]}
                                source={{uri: 'https://cdn.iconscout.com/icon/free/png-256/left-arrow-8-458424.png'}}/>
                     </TouchableOpacity> :
@@ -415,11 +443,9 @@ export default class Mapa extends React.Component {
         );
     }
 
-    render() {
+    render_map() {
         return (
-            <View style={[mapa_styles.container_maps, {
-                marginTop: this.state.statusBarHeight
-            }]}>
+            <View style={[mapa_styles.container_maps, {marginTop: this.state.statusBarHeight}]}>
                 <MapView
                     style={mapa_styles.map_view}
                     ref={map => this.mapView = map}
@@ -428,26 +454,21 @@ export default class Mapa extends React.Component {
                     loadingEnabled
                     onMapReady={this._mapReady}
                 >
-
                     {this.state.destination && (
-                        <Directions
-                            origin={this.state.place.origem}
-                            destination={this.state.destination}
-                            onReady={result => {
-                                this.state.result_directions = result;
-                                this.state.duration = Math.floor(result.duration);
-                                this.state.km = result.distance;
-                                this.setState({
-                                    duration: this.state.duration,
-                                    km: this.state.km,
-                                    result_directions: this.state.result_directions
-                                });
-                            }}
-                        />
+                        <Fragment>
+                            <Directions
+                                origin={this.state.place.origem}
+                                destination={this.state.destination}
+                                onReady={result => {this.get_result_directions(result)}}
+                            />
+                                <MapView.Marker coordinate={this.state.destination}>
+                                    <Image style={{width: 30, height: 30}}
+                                           source={{uri: 'https://pt.seaicons.com/wp-content/uploads/2016/03/Map-Marker-Flag-5-Pink-icon.png'}}/>
+                                </MapView.Marker>
+                        </Fragment>
                     )}
 
                     {this.state.places.map((place, index) => (
-
                         <MapView.Marker
                             ref={mark => place.mark = mark}
                             // title={place.name}
@@ -458,14 +479,12 @@ export default class Mapa extends React.Component {
                                 longitude: place.origem.longitude,
                             }}
                         >
-
                             <Image style={[mapa_styles.img_marker]}
                                    source={{uri: 'https://png.pngtree.com/svg/20170919/place_787081.png'}}/>
-
-                            <MapView.Callout onPress={() => {
-                                this.setState({place: place, rota_ativa: false});
-                                this.show_details(place);
-                            }}
+                                <MapView.Callout onPress={() => {
+                                    this.setState({place: place, rota_ativa: false});
+                                    this.show_details(place);
+                                }}
                                              tooltip={true}>
                                 <View style={[mapa_styles.container_callout]}>
 
@@ -490,10 +509,15 @@ export default class Mapa extends React.Component {
                     ))}
                 </MapView>
 
-
                 {this.render_buttons()}
                 {this.render_details_mudanca()}
             </View>
+        );
+    }
+
+    render() {
+        return (
+            this.render_map()
         );
     }
 }
