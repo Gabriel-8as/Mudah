@@ -9,7 +9,8 @@ import {
     ScrollView,
     Dimensions,
     Animated,
-    PixelRatio
+    PixelRatio,
+    TextInput
 } from 'react-native';
 import MapView from 'react-native-maps';
 import mapa_styles from './Mapa-styles';
@@ -122,8 +123,8 @@ export default class Mapa extends React.Component {
                     region: {
                         latitude,
                         longitude,
-                        latitudeDelta: 0.01042,
-                        longitudeDelta: 0.0231,
+                        latitudeDelta: 0.02042,
+                        longitudeDelta: 0.0331,
                     }
                 });
             },
@@ -215,6 +216,20 @@ export default class Mapa extends React.Component {
         }
     });
 
+    change_valor_proposta(add) {
+        if (add) {
+            this.state.valor_proposta++;
+            this.setState({
+                valor_proposta: this.state.valor_proposta
+            });
+        } else if (!add && this.state.valor_proposta > 0) {
+            this.state.valor_proposta--;
+            this.setState({
+                valor_proposta: this.state.valor_proposta
+            });
+        }
+    }
+
     render_details_mudanca() {
 
         let show_dados = this.state.animation.interpolate({
@@ -294,26 +309,23 @@ export default class Mapa extends React.Component {
                             </Text>
 
                             <View style={[mapa_styles.container_icon, {marginTop: 10, flexDirection: 'row'}]}>
+
                                 <Text style={[mapa_styles.text_item, {fontSize: 34, fontWeight: 'bold'}]}>
-                                    R$ {this.state.valor_proposta}
+                                    R$
                                 </Text>
 
-                                {/*<Text style={[mapa_styles.text_item, {fontSize: 34, fontWeight: 'bold'}]}>*/}
-                                {/*R$*/}
-                                {/*</Text>*/}
-
-                                {/*<TextInput*/}
-                                {/*style={{backgroundColor: '#fff', textAlign: 'center', color: '#5A5A5A', fontSize: 34, fontWeight: 'bold'}}*/}
-                                {/*keyboardType='numeric'*/}
-                                {/*underlineColorAndroid="transparent"*/}
-                                {/*value={this.state.valor_proposta != null || this.state.valor_proposta != undefined ? this.state.valor_proposta.toString() : this.state.valor_proposta}*/}
-                                {/*onChangeText={(text) => {*/}
-                                {/*this.state.valor_proposta = text;*/}
-                                {/*this.setState({*/}
-                                {/*valor_proposta: this.state.valor_proposta*/}
-                                {/*});*/}
-                                {/*}}*/}
-                                {/*/>*/}
+                                <TextInput
+                                    style={{backgroundColor: '#fff', borderColor: '#f2f2f2', borderWidth: 1, textAlign: 'center', color: '#5A5A5A', fontSize: 34, fontWeight: 'bold', paddingLeft: 5, paddingRight: 5, marginLeft: 5}}
+                                    keyboardType='numeric'
+                                    underlineColorAndroid="transparent"
+                                    value={this.state.valor_proposta != null || this.state.valor_proposta != undefined ? this.state.valor_proposta.toString() : this.state.valor_proposta}
+                                    onChangeText={(text) => {
+                                        this.state.valor_proposta = text;
+                                        this.setState({
+                                            valor_proposta: this.state.valor_proposta
+                                        });
+                                    }}
+                                />
 
                             </View>
 
@@ -379,23 +391,35 @@ export default class Mapa extends React.Component {
         }
     }
 
-    change_valor_proposta(add) {
-        if (add) {
-            this.state.valor_proposta++;
-            this.setState({
-                valor_proposta: this.state.valor_proposta
-            });
-        } else if (!add && this.state.valor_proposta > 0) {
-            this.state.valor_proposta--;
-            this.setState({
-                valor_proposta: this.state.valor_proposta
-            });
-        }
+    render_buttons(){
+        return(
+            <View style={{top: 10, left: 10, position: 'absolute', zIndex: 99}}>
+                {this.state.rota_ativa ?
+                    <TouchableOpacity onPress={() => {
+                        this.show_details(this.state.place);
+                        this.setState({rota_ativa: false});
+                    }}
+                                      style={{padding: 10}}>
+                        <Image style={[{width: 30, height: 30, tintColor: '#000'}]}
+                               source={{uri: 'https://cdn.iconscout.com/icon/free/png-256/left-arrow-8-458424.png'}}/>
+                    </TouchableOpacity> :
+
+                    <TouchableOpacity onPress={() => this.exit()}
+                                      style={{padding: 10, backgroundColor: 'rgba(0,0,0,0.7)'}}>
+                        <Text style={{color: '#fff'}}>
+                            SAIR
+                        </Text>
+                    </TouchableOpacity>
+                }
+            </View>
+        );
     }
 
     render() {
         return (
-            <View style={mapa_styles.container_maps}>
+            <View style={[mapa_styles.container_maps, {
+                marginTop: this.state.statusBarHeight
+            }]}>
                 <MapView
                     style={mapa_styles.map_view}
                     ref={map => this.mapView = map}
@@ -439,7 +463,7 @@ export default class Mapa extends React.Component {
                                    source={{uri: 'https://png.pngtree.com/svg/20170919/place_787081.png'}}/>
 
                             <MapView.Callout onPress={() => {
-                                this.setState({place: place});
+                                this.setState({place: place, rota_ativa: false});
                                 this.show_details(place);
                             }}
                                              tooltip={true}>
@@ -466,15 +490,8 @@ export default class Mapa extends React.Component {
                     ))}
                 </MapView>
 
-                <View style={{top: 10, left: 10, position: 'absolute', zIndex: 99}}>
-                    <TouchableOpacity onPress={() => this.exit()}
-                                      style={{padding: 10, backgroundColor: 'rgba(0,0,0,0.7)'}}>
-                        <Text style={{color: '#fff'}}>
-                            SAIR
-                        </Text>
-                    </TouchableOpacity>
-                </View>
 
+                {this.render_buttons()}
                 {this.render_details_mudanca()}
             </View>
         );
